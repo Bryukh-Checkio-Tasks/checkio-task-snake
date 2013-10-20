@@ -1,39 +1,68 @@
 <p>
-    <i>( Describe task in general )</i>
-</p>
+    We all know about the classic game
+    <a href="http://en.wikipedia.org/wiki/Snake_(video_game)">"Snake"</a>.
 
+</p>
 <p>
-    Sum two passed ints
+    You are given a 10x10 field of cells. You control a snake and your task is to eat 5 cherries which are randomly
+    placed on the field. The snake starts the game 5 units long and grows by one unit for each cherry it eats. In order
+    to survive long enough to eat the cherries, the snake must not hit a tree, the edge of the field, or its own body.
+    To do so would trigger a game over. The snake does not sit still and is constantly moving. It can go in one of 3
+    directions: Forward “F”, Left “L” and Right “R”. Left and right are defined by the current position and trajectory
+    of the snakes head. The map of field is presented as list of strings, where:
+</p>
+<pre>
+    "." - Empty cell
+    "T" - Tree
+    "C" - Cherry
+    "0" - Snake head
+    "1..9" -  Numbered Segments of the Snake Body
+</pre>
+<p>
+    This is a multi-call task and your function will be called repeatedly until the game is complete. During each
+    function call, you can return a character or a string that contains a sequence of actions (example: “FRFLF.”) Once
+    the snake eats a cherry the remaining actions are dropped, a new cherry appears and the game continues. Once 5
+    cherries are eaten the game is over and you win. This version of snake has an interesting twist: you must eat the 5
+    cherries in 250 steps or less or face a game over.
+
 </p>
 
 <p style="text-align: center;">
-    <img class="for_info_only" title="example" src="{{MEDIA}}example.png" alt="example" width="392px"/>
-    <img class="for_editor_only" title="example" src="{{MEDIA}}example.png" alt="example" width="380px"/>
+    <img class="for_info_only"
+         title="snake"
+         src="{{ MEDIA }}snake.png"
+         alt="snake"
+         width="600px"/>
+    <img class="for_editor_only"
+         title="snake"
+         src="{{ MEDIA }}snake.png"
+         alt="snake"
+         width="380px"/>
 </p>
-
-<p><i>( Explain input and output values )</i></p>
 <p>
-    <strong>Input: </strong> Two arguments. Both are int
+    <strong>Hints: </strong><br>
+    Be careful if you use breadth first search -- it can take a long time if you select a bad state representation.<br>
+    At first the snake will move its tail then it will move its head. You can try to chase the tail this way.<br>
+    New cherries can't appear in the outer cells (ex. [0,0], [9, 9]).
+</p>
+<p>
+    <strong>Input: </strong> A list of strings. The map of field.
 </p>
 
 <p>
-    <strong>Output: </strong> Int. 
+    <strong>Output: </strong>A string. One or more actions.
 </p>
-
 
 
 <div class="for_info_only">
     <p><i>( Put some usage examples )</i></p>
+
     <p>
         <strong>Example:</strong>
     </p>
-    <pre class="brush: python">
-checkio(3, 2) == 5
-checkio(5, 7) == 12
-    </pre>
+    <pre class="brush: python"></pre>
 </div>
 
 <p class="for_info_only">
     <strong>How it is used: </strong>
-    <i>(Here you can explain how it can be used in development and what is usage of this.)</i>
 </p>
