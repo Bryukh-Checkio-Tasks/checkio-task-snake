@@ -1,49 +1,169 @@
-"""
-CheckiOReferee is a base referee for checking you code.
-    arguments:
-        tests -- the dict contains tests in the specific structure.
-            You can find an example in tests.py.
-        cover_code -- is a wrapper for the user function and additional operations before give data
-            in the user function. You can use some predefined codes from checkio.referee.cover_codes
-        checker -- is replacement for the default checking of an user function result. If given, then
-            instead simple "==" will be using the checker function which return tuple with result
-            (false or true) and some additional info (some message).
-            You can use some predefined codes from checkio.referee.checkers
-        add_allowed_modules -- additional module which will be allowed for your task.
-        add_close_builtins -- some closed builtin words, as example, if you want, you can close "eval"
-        remove_allowed_modules -- close standard library modules, as example "math"
-
-checkio.referee.checkers
-    checkers.float_comparison -- Checking function fabric for check result with float numbers.
-        Syntax: checkers.float_comparison(digits) -- where "digits" is a quantity of significant
-            digits after coma.
-
-checkio.referee.cover_codes
-    cover_codes.unwrap_args -- Your "input" from test can be given as a list. if you want unwrap this
-        before user function calling, then using this function. For example: if your test's input
-        is [2, 2] and you use this cover_code, then user function will be called as checkio(2, 2)
-    cover_codes.unwrap_kwargs -- the same as unwrap_kwargs, but unwrap dict.
-
-"""
-
+from random import randint
 from checkio.signals import ON_CONNECT
 from checkio import api
-from checkio.referees.io import CheckiOReferee
-from checkio.referees import cover_codes
-from checkio.referees import checkers
+from checkio.referees.multicall import CheckiORefereeMulti
 
 from tests import TESTS
 
+ACTION = ("L", "R", "F")
+
+#Legend
+CHERRY = 'C'
+TREE = 'T'
+STRIKE_TREE = "S"
+EATEN_SNAKE = "E"
+SNAKE_HEAD = '0'
+SNAKE = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+EMPTY = "."
+
+def find_snake(field_map):
+    snake = {}
+    for i, row in enumerate(field_map):
+        for j, symb in enumerate(row):
+            if symb in SNAKE or symb == SNAKE_HEAD:
+                snake[symb] = (i, j)
+    return snake
+
+
+def find_new_head(snake, action):
+    head = snake[SNAKE_HEAD]
+    snake_dir = (head[0] - snake["1"][0], head[1] - snake["1"][1])
+    if action == 'F':
+        return head[0] + snake_dir[0], head[1] + snake_dir[1]
+    elif action == 'L':
+        return head[0] - snake_dir[1], head[1] + snake_dir[0]
+    elif action == 'R':
+        return head[0] + snake_dir[1], head[1] - snake_dir[0]
+    else:
+        raise ValueError("Action must be only L,R or F")
+
+
+def pack_map(list_map):
+    return [''.join(row) for row in list_map]
+
+
+def initial_referee(field_map):
+    return {
+        "input": field_map,
+        "step_count": 250
+    }
+
+
+def process_referee(referee_data, route):
+    field_map = referee_data["input"]
+    temp_map = [[c for c in row] for row in field_map]
+    step_count = referee_data["step_count"]
+    if not (isinstance(route, str)):
+        referee_data.update({
+            "result": False,
+            "route": "",
+            "result_text": "The input data is not string",
+            "input": field_map})
+        return referee_data
+    if not route:
+        referee_data.update({
+            "result": False,
+            "route": "",
+            "result_text": "Empty input data",
+            "input": field_map})
+        return referee_data
+    res_route = ""
+    for ch in route:
+        if step_count < 0:
+            referee_data.update({
+                "result": False,
+                "route": res_route,
+                "result_text": "Too many steps (no more than 250).",
+                "input": pack_map(temp_map)})
+            return referee_data
+        if ch not in ACTION:
+            referee_data.update({
+                "result": False,
+                "route": res_route,
+                "result_text": "The route must contain only F,L,R symbols",
+                "input": pack_map(temp_map)})
+            return referee_data
+        res_route += ch
+        snake = find_snake(temp_map)
+        tail = snake[max(snake.keys())]
+        temp_map[tail[0]][tail[1]] = EMPTY
+        new_head = find_new_head(snake, ch)
+        for s_key in sorted(snake.keys())[:-1]:
+            s = snake[s_key]
+            temp_map[s[0]][s[1]] = str(int(temp_map[s[0]][s[1]]) + 1)
+        if (new_head[0] < 0 or new_head[0] >= len(temp_map) or
+                new_head[1] < 0 or new_head[1] >= len(temp_map[0])):
+            referee_data.update({
+                "result": False,
+                "route": res_route,
+                "result_text": "The snake crawl outside",
+                "input": pack_map(temp_map)})
+            return referee_data
+        elif temp_map[new_head[0]][new_head[1]] == 'T':
+            temp_map[new_head[0]][new_head[1]] = STRIKE_TREE
+            referee_data.update({
+                "result": False,
+                "route": res_route,
+                "result_text": "The snake struck at the tree",
+                "input": pack_map(temp_map)})
+            return referee_data
+        elif temp_map[new_head[0]][new_head[1]] in SNAKE:
+            temp_map[new_head[0]][new_head[1]] = EATEN_SNAKE
+            referee_data.update({
+                "result": False,
+                "route": res_route,
+                "result_text": "The snake bit itself",
+                "input": pack_map(temp_map)})
+            return referee_data
+
+        if temp_map[new_head[0]][new_head[1]] == 'C':
+            temp_map[new_head[0]][new_head[1]] = SNAKE_HEAD
+            if max(snake.keys()) == '9':
+                referee_data.update({
+                    "result": True,
+                    "route": res_route,
+                    "result_text": "You win!",
+                    "input": pack_map(temp_map),
+                    "is_goal": True})
+                return referee_data
+            else:
+                temp_map[tail[0]][tail[1]] = str(int(max(snake.keys())) + 1)
+                cherry = (randint(1, len(temp_map) - 2),
+                          randint(1, len(temp_map[0]) - 2))
+                while temp_map[cherry[0]][cherry[1]] != EMPTY:
+                    cherry = (randint(1, len(temp_map) - 2),
+                              randint(1, len(temp_map[0]) - 2))
+                temp_map[cherry[0]][cherry[1]] = CHERRY
+                step_count -= 1
+                referee_data.update({
+                    "result": True,
+                    "route": res_route,
+                    "result_text": "Next move",
+                    "input": pack_map(temp_map),
+                    "step_count": step_count})
+                return referee_data
+        else:
+            temp_map[new_head[0]][new_head[1]] = SNAKE_HEAD
+        step_count -= 1
+    referee_data.update({
+        "result": True,
+        "route": res_route,
+        "result_text": "Next move",
+        "input": pack_map(temp_map),
+        "step_count": step_count})
+    return referee_data
+
+
+def is_win_referee(referee_data):
+    return referee_data.get('is_goal', False)
+
+
+
 api.add_listener(
     ON_CONNECT,
-    CheckiOReferee(
+    CheckiORefereeMulti(
         tests=TESTS,
-        cover_code={
-            'python-27': cover_codes.unwrap_args,  # or None
-            'python-3': cover_codes.unwrap_args
-        },
-        # checker=None,  # checkers.float.comparison(2)
-        # add_allowed_modules=[],
-        # add_close_builtins=[],
-        # remove_allowed_modules=[]
+        initial_referee=initial_referee,
+        process_referee=process_referee,
+        is_win_referee=is_win_referee,
     ).on_ready)
