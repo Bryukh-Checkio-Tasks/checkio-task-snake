@@ -1,36 +1,55 @@
-"""
-TESTS is a dict with all you tests.
-Keys for this will be categories' names.
-Each test is dict with
-    "input" -- input data for user function
-    "answer" -- your right answer
-    "explanation" -- not necessary key, it's using for additional info in animation.
-"""
-
-
 TESTS = {
-    "Basics": [
-        {
-            "input": [3, 2],
-            "answer": 5,
-            "explanation": "3+2=?"
-        },
-        {
-            "input": [5, 7],
-            "answer": 12,
-            "explanation": "5+7=?"
-        }
-    ],
-    "Extra": [
-        {
-            "input": [6, 3],
-            "answer": 9,
-            "explanation": "6+3=?"
-        },
-        {
-            "input": [6, 7],
-            "answer": 13,
-            "explanation": "6+7=?"
-        }
-    ]
+    "0. Basics": {
+        "start_map": [
+            ".T.....T..",
+            ".C........",
+            ".....T....",
+            "..T....T..",
+            "..........",
+            ".0...T....",
+            ".1........",
+            ".2.T...T..",
+            ".3...T....",
+            ".4........"]
+    },
+    "1. Extra": {
+        "start_map": [
+            "..T....T.C",
+            ".......T..",
+            "...TTT....",
+            "..T....T..",
+            "..T...T...",
+            ".0T..T....",
+            ".1........",
+            ".2.T..TT..",
+            ".3..TT....",
+            ".4........"]
+    },
+    "2. Extra": {
+        "start_map": [
+            "..........",
+            "..T.T.....",
+            "..T.T.....",
+            "..T.T.....",
+            "..T.T.....",
+            ".0T.TTTTT.",
+            ".1TC......",
+            ".2TTTTTTT.",
+            ".3........",
+            ".4........"]
+    },
+    "3. Extra": {
+        "start_map": [
+            "...T...T..",
+            ".T...T...T",
+            "...T...T..",
+            ".T..CT...T",
+            "...T...T..",
+            "0T...T...T",
+            "1..T...T..",
+            "2T...T...T",
+            "3..T...T..",
+            "4T...T...T"]
+    },
+
 }
