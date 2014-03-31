@@ -18,6 +18,7 @@
     "0" - Snake head
     "1..9" -  Numbered Segments of the Snake Body
 </pre>
+<br>
 <p>
     This is a multi-call task and your function will be called repeatedly until the game is complete. During each
     function call, you can return a character or a string that contains a sequence of actions (example: “FRFLF.”) Once
@@ -40,17 +41,16 @@
          width="380px"/>
 </p>
 <p>
-    <strong>Hints: </strong><br>
-    Be careful if you use breadth first search -- it can take a long time if you select a bad state representation.<br>
-    At first the snake will move its tail then it will move its head. You can try to have your snake chase its tail this way.<br>
-    New cherries can't appear in the outer cells (ex. [0,0], [9, 9]), but the start cherry can be in outer cells.
+
+    At first the snake will move its tail then it will move its head. You can try to have your snake chase its tail this
+    way. Be careful if you use breadth first search -- it can take a long time if you select a bad state representation.
 </p>
 <p>
-    <strong>Input: </strong> A list of strings. The map of field.
+    <strong>Input: </strong> The map of field as a list of strings.
 </p>
 
 <p>
-    <strong>Output: </strong>A string. One or more actions.
+    <strong>Output: </strong>One or more actions as a string.
 </p>
 
 
@@ -74,4 +74,13 @@
 
 <p class="for_info_only">
     <strong>How it is used: </strong>
+    With this game you can write the simple artificial intelligence.
+    Here you should use pathfinding and planning. These are useful skills for many spheres of the real life too ;-)
+</p>
+
+
+<p>
+    <strong>Precondition:</strong>
+    |field| == 10 x 10<br>
+    New cherries can't appear in the outer cells (ex. [0,0], [9, 9]), but the start cherry can be in outer cells.<br>
 </p>
