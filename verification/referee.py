@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choice
 from checkio.signals import ON_CONNECT
 from checkio import api
 from checkio.referees.multicall import CheckiORefereeMulti
@@ -7,7 +7,7 @@ from tests import TESTS
 
 ACTION = ("L", "R", "F")
 
-#Legend
+# Legend
 CHERRY = 'C'
 TREE = 'T'
 STRIKE_TREE = "S"
@@ -16,12 +16,17 @@ SNAKE_HEAD = '0'
 SNAKE = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 EMPTY = "."
 
+SIZE = 10
+DISTANCE = 5
+INITIAL_STEPS = 300
+
+
 def find_snake(field_map):
     snake = {}
     for i, row in enumerate(field_map):
-        for j, symb in enumerate(row):
-            if symb in SNAKE or symb == SNAKE_HEAD:
-                snake[symb] = (i, j)
+        for j, symbol in enumerate(row):
+            if symbol in SNAKE or symbol == SNAKE_HEAD:
+                snake[symbol] = (i, j)
     return snake
 
 
@@ -42,10 +47,25 @@ def pack_map(list_map):
     return [''.join(row) for row in list_map]
 
 
+def create_cherry(field, head):
+    distance = DISTANCE
+    hrow, hcol = head
+    possible = []
+    while not possible:
+        possible = [(i, j) for i in range(SIZE) for j in range(SIZE)
+                    if field[i][j] == "." and (abs(i - head[0]) + abs(j - head[1])) == distance]
+        distance = (distance + 1) % SIZE
+    return choice(possible)
+
+
 def initial_referee(field_map):
+    head = find_snake(field_map)["0"]
+    crow, ccol = create_cherry(field_map, head)
+    temp_map = [[c for c in row] for row in field_map]
+    temp_map[crow][ccol] = CHERRY
     return {
-        "input": field_map,
-        "step_count": 250
+        "input": pack_map(temp_map),
+        "step_count": INITIAL_STEPS
     }
 
 
@@ -73,7 +93,7 @@ def process_referee(referee_data, route):
             referee_data.update({
                 "result": False,
                 "route": res_route,
-                "result_text": "Too many steps (no more than 250).",
+                "result_text": "Too many steps.",
                 "input": pack_map(temp_map)})
             return referee_data
         if ch not in ACTION:
@@ -92,7 +112,7 @@ def process_referee(referee_data, route):
             s = snake[s_key]
             temp_map[s[0]][s[1]] = str(int(temp_map[s[0]][s[1]]) + 1)
         if (new_head[0] < 0 or new_head[0] >= len(temp_map) or
-                new_head[1] < 0 or new_head[1] >= len(temp_map[0])):
+                    new_head[1] < 0 or new_head[1] >= len(temp_map[0])):
             referee_data.update({
                 "result": False,
                 "route": res_route,
@@ -124,15 +144,12 @@ def process_referee(referee_data, route):
                     "route": res_route,
                     "result_text": "You win!",
                     "input": pack_map(temp_map),
-                    "is_goal": True})
+                    "is_goal": True,
+                    "score": step_count})
                 return referee_data
             else:
                 temp_map[tail[0]][tail[1]] = str(int(max(snake.keys())) + 1)
-                cherry = (randint(1, len(temp_map) - 2),
-                          randint(1, len(temp_map[0]) - 2))
-                while temp_map[cherry[0]][cherry[1]] != EMPTY:
-                    cherry = (randint(1, len(temp_map) - 2),
-                              randint(1, len(temp_map[0]) - 2))
+                cherry = create_cherry(temp_map, new_head)
                 temp_map[cherry[0]][cherry[1]] = CHERRY
                 step_count -= 1
                 referee_data.update({
@@ -158,7 +175,6 @@ def is_win_referee(referee_data):
     return referee_data.get('is_goal', False)
 
 
-
 api.add_listener(
     ON_CONNECT,
     CheckiORefereeMulti(
@@ -166,4 +182,5 @@ api.add_listener(
         initial_referee=initial_referee,
         process_referee=process_referee,
         is_win_referee=is_win_referee,
+        function_name="snake"
     ).on_ready)
